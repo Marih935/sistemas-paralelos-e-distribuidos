@@ -119,10 +119,22 @@ void calcular_notas(Candidato *candidato, char gabarito[NUM_QUESTOES][2]) {
     candidato->aprovado = (candidato->media_final >= MEDIA_APROVACAO) ? 1 : 0;
 }
 
+// Função de comparação para ordenação (ordem decrescente de média final)
+int comparar_candidatos(const void *a, const void *b) {
+    Candidato *candidatoA = (Candidato *)a;
+    Candidato *candidatoB = (Candidato *)b;
+    
+    if (candidatoB->media_final < candidatoA->media_final) return -1;
+    if (candidatoB->media_final > candidatoA->media_final) return 1;
+    return 0;
+}
+
 // Função para imprimir resultados
 void imprimir_resultados(Candidato candidatos[], int total_candidatos, int rank) {
     int qtd_aprovados = 0;
     float soma_media = 0;
+    Candidato aprovados[MAX_CANDIDATOS];
+    int aprovados_count = 0;
 
     // Exibir os dados dos candidatos
     for (int i = 0; i < total_candidatos; i++) {
@@ -133,8 +145,9 @@ void imprimir_resultados(Candidato candidatos[], int total_candidatos, int rank)
         // Calcular total de aprovados e média geral
         if (candidatos[i].aprovado) {
             qtd_aprovados++;
+            soma_media += candidatos[i].media_final;
+            aprovados[aprovados_count++] = candidatos[i];  // Adiciona o candidato à lista de aprovados
         }
-        soma_media += candidatos[i].media_final;
     }
 
     // Média geral dos candidatos
@@ -142,12 +155,21 @@ void imprimir_resultados(Candidato candidatos[], int total_candidatos, int rank)
     printf("\nTotal de Candidatos: %d, Candidatos Aprovados: %d, Média Geral dos Candidatos: %.2f\n\n",
             total_candidatos, qtd_aprovados, media_geral);
 
-    // Exibir lista de candidatos aprovados
-    printf("Lista de Candidatos Aprovados:\n");
-    for (int i = 0; i < total_candidatos; i++) {
-        if (candidatos[i].aprovado) {
-            printf("ID: %s\n", candidatos[i].id);
+    // Organizar a lista de aprovados por média (do maior para o menor)
+    for (int i = 0; i < aprovados_count - 1; i++) {
+        for (int j = i + 1; j < aprovados_count; j++) {
+            if (aprovados[i].media_final < aprovados[j].media_final) {
+                Candidato temp = aprovados[i];
+                aprovados[i] = aprovados[j];
+                aprovados[j] = temp;
+            }
         }
+    }
+
+    // Exibir lista de candidatos aprovados com colocação e média
+    printf("Lista de Candidatos Aprovados (Ordenada por Média):\n");
+    for (int i = 0; i < aprovados_count; i++) {
+        printf("Colocação: %d, ID: %s, Média: %.2f\n", i + 1, aprovados[i].id, aprovados[i].media_final);
     }
 }
 
